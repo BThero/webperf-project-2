@@ -1,8 +1,7 @@
-import { lazy } from "react";
+import { lazy } from 'react';
 
-export const Hero = lazy(() => import("./Hero"));
-
-export * from "./Section";
-export * from "./Form";
-export * from "./Container";
-export * from "./News";
+export * from './Hero';
+export * from './Section';
+export const Form = lazy(() => import('./Form'));
+export * from './Container';
+export * from './News';
