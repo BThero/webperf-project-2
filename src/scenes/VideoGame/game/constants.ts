@@ -21,8 +21,16 @@ export const scenePadding = 20;
 /**
  * How big are the enemies in pixels.
  */
-export const enemyHeight = 50;
+
+export const enemyHeight = 40;
 export const enemyWidth = 60;
+
+/**
+ * How big are the shots in pixels.
+ */
+
+export const shotHeight = 12;
+export const shotWidth = 12;
 
 /**
  * How fast do shots move. This is a unit relative to the screen height, per second.

@@ -1,3 +1,4 @@
+import { updatePosition } from './entities';
 import { createLevel } from './levels';
 import { Entity, GameState } from './types';
 
@@ -67,12 +68,15 @@ export function addEntity(state: GameState, entity: Entity) {
 }
 
 /**
- * Removes an entities from the scene and marks it for future cleanup.
+ * Removes an entities from the scene and marks it for future reuse.
  * @param entity
  */
 export function killEntity(entity: Entity) {
 	entity.dead = true;
-	entity.el.remove();
+	entity.el.style.opacity = '0';
+	entity.x = 0;
+	entity.y = 0;
+	updatePosition(entity.el, 0, 0);
 }
 
 /**
@@ -82,11 +86,4 @@ export function killAllEntities(state: GameState) {
 	state.entities.forEach((entity) => {
 		killEntity(entity);
 	});
-}
-
-/**
- * Clean up all "dead" entities from the game state.
- */
-export function removeDeadEntities(state: GameState) {
-	state.entities = state.entities.filter((item) => !item.dead);
 }

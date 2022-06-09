@@ -1,13 +1,13 @@
-import { createEnemy, scoreFromEnemy } from './entities';
 import {
-	addEntity,
-	killAllEntities,
-	killEntity,
-	removeDeadEntities,
-} from './state';
-import { Enemy, Entity, GameState } from './types';
+	createEnemy,
+	getBoundingRect,
+	reviveAsEnemy,
+	scoreFromEnemy,
+} from './entities';
+import { addEntity, killAllEntities, killEntity } from './state';
+import { Enemy, GameState } from './types';
 import { createLevel, levelBackgrounds } from './levels';
-import { bonusScore } from './constants';
+import { bonusScore, shotHeight, shotWidth } from './constants';
 import { getSnakePosition } from './utils';
 import { updatePosition } from './entities';
 
@@ -59,7 +59,17 @@ function checkSpawn(state: GameState, updateTime: number) {
 		state.lastSpawnTime = updateTime;
 		enemySpawns.shift();
 
-		addEntity(state, createEnemy(enemySpawn, updateTime));
+		const index = state.entities.findIndex((item) => item.dead);
+
+		if (index !== -1) {
+			state.entities[index] = reviveAsEnemy(
+				state.entities[index],
+				enemySpawn,
+				updateTime
+			);
+		} else {
+			addEntity(state, createEnemy(enemySpawn, updateTime));
+		}
 	}
 }
 
@@ -80,8 +90,11 @@ function updateBarrel(state: GameState) {
  */
 function updateEntities(state: GameState, updateTime: number, delta: number) {
 	state.entities.forEach((entity) => {
+		if (entity.dead) {
+			return;
+		}
+
 		// Shots go in a straight direction based on their velocity.
-		// const prevStyles = window.getComputedStyle(entity.el);
 		if (entity.type === 'shot') {
 			const newPos = {
 				x: entity.x + entity.velocity.x * delta,
@@ -139,7 +152,8 @@ function updateEntities(state: GameState, updateTime: number, delta: number) {
  */
 function checkCollisions(state: GameState) {
 	state.entities.forEach((entity) => {
-		const rect = entity.el.getBoundingClientRect();
+		const rect = getBoundingRect(entity);
+
 		const outsideBounds =
 			entity.type === 'shot'
 				? // Shots collide with all boundaries.
@@ -169,11 +183,11 @@ function checkCollisions(state: GameState) {
 	);
 
 	if (shots.length > 0 && enemies.length > 0) {
-		shots.forEach((entityA) => {
-			const rectA = entityA.el.getBoundingClientRect();
+		shots.forEach((shot) => {
+			const rectA = getBoundingRect(shot);
 
-			enemies.forEach((entityB) => {
-				const rectB = entityB.el.getBoundingClientRect();
+			enemies.forEach((enemy) => {
+				const rectB = getBoundingRect(enemy);
 
 				// Such simple code, but still capable of causing a migraine. 🙃
 				const hit = !(
@@ -185,17 +199,14 @@ function checkCollisions(state: GameState) {
 
 				if (hit) {
 					// Yay!
-					killEntity(entityA);
-					killEntity(entityB);
-					state.score += scoreFromEnemy(entityB as Enemy);
+					killEntity(shot);
+					killEntity(enemy);
+					state.score += scoreFromEnemy(enemy as Enemy);
 					checkEndLevel(state);
 				}
 			});
 		});
 	}
-
-	// Filter dead entities.
-	removeDeadEntities(state);
 }
 
 /**
